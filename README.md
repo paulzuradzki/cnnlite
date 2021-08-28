@@ -1,18 +1,43 @@
-# cnn_scraper.py
+# cnnlite
 
-# Description
-This module contains functions for scraping the CNN Lite site at https://lite.cnn.com.
+## Description
+`cnnlite` is a web scraper for CNN Lite. This package collects CNN Lite articles at https://lite.cnn.com.
 
-# Usage
+## Installation
 ```bash
-
-# install requirements (requests and beautifulsoup)
->>> pip install -r requirements.txt
-
-# export today's news to json document in local folder
->>> python cnn_scraper.py
+>>> pip install cnnlite
 ```
 
-#### Sample CNN Lite Home Page and Output JSON
-<img src="./imgs/sample_cnn_lite.png" width="30%" alttext="Sample CNN Lite home page">
-<img src="./imgs/sample_json.png" width="45%" altext="Sample JSON output">
+## Usage
+```python
+
+# instantiate scraper
+import cnnlite
+from pprint import pprint
+
+# start up scraper
+scraper = cnnlite.CNNLite()
+
+# export all articles to a json file
+# default name: 'cnn_lite_<timestamp>.json'
+scraper.to_json_file()
+
+# show sample of headlines and URL list
+print(scraper.headlines[:5])
+print(scraper.urls[:5])
+
+# large collection / nest dict containing each article for the day
+docs = scraper.all_articles
+
+# articles can be access one at a time too
+article_name = scraper.headlines[0]
+pprint(docs[article_name])
+
+```
+
+## Sample CNN Lite Home Page and Output JSON
+<img src="./imgs/sample_cnn_lite.png" width="50%" alttext="Sample CNN Lite home page">
+<img src="./imgs/sample_json.png" width="65%" altext="Sample JSON output">
+
+## Bot Etiquetee
+[Be a good bot and comply with the publisher's `robots.txt` guidelines.](https://edition.cnn.com/robots.txt)
