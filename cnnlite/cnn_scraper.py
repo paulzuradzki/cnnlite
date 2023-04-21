@@ -65,12 +65,15 @@ class CNNLite:
         document = {}
 
         # get headline
-        document['headline'] = soup.find_all('h2').pop().getText()    
+        document['headline'] = soup.find_all('h2', class_ = 'headline').pop().getText()
         document['url'] = url
 
         # get other meta info using `id` label
-        for meta_info_category in ['byline', 'published datetime', 'source', 'editorsNote']:
-            document[meta_info_category] = soup.find_all(id=meta_info_category).pop().getText()
+        for meta_info_category in ['byline--lite', 'timestamp--lite', 'source--lite']:
+            try:
+                document[meta_info_category.split('-')[0]] = soup.find_all('p', class_=meta_info_category).pop().getText()
+            except Exception:
+                pass
 
         # get article text from `p` tags
         article_text = '\n\n'.join([tag.getText() for tag in soup.select('p')])    
@@ -90,9 +93,8 @@ class CNNLite:
         # and within each headline collection is metadata and the article text. Ex:
         # {headline_1: 
             # {'byline': '', 
-            #  'published datetime': '',
-            #  'source': '', 
-            #  'editorsNote': '',
+            #  'timestamp': '',
+            #  'source': '',
             #  'article_text': ''
         # ... and so on through headline_<N>
         docs = {}
@@ -107,7 +109,10 @@ class CNNLite:
                 docs[doc['headline']] = doc
         
             with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-                executor.map(_add_doc_to_dict, self.urls)
+                result_futures = list(map(lambda x: executor.submit(_add_doc_to_dict,x), self.urls))
+                # Access the result in order to raise the right exceptions
+                for future in concurrent.futures.as_completed(result_futures):
+                    future.result()
         
         elif not threaded:
 
@@ -126,14 +131,15 @@ class CNNLite:
         html = resp.text
         soup = BeautifulSoup(html, 'html.parser')
 
-        # for each 'a' tag with 'article' in the URL
+        # for each 'a' tag with 'index.html' in the URL
         # get the text (headline) and URL
         header_data = [(tag.getText(), tag['href']) 
                     for tag in soup.select('a')
-                    if 'article' in tag['href']]
+                    if 'index.html' in tag['href']]
 
         # headlines is not accessed anywhere for now
         headlines, urls = zip(*header_data)
         urls = [base_url + url for url in urls]
         
         return urls
+    
